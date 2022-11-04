@@ -1,0 +1,182 @@
+===========================
+Report:  Export Report
+Created: 25/5/2017 18:21:44
+===========================
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+File 1: U:\Water and Health Laboratory\ORGANIKO\C3 - Children's Health Study\Main study\Digitization of questionnaires, diary\baseline digitiz\Final\Baseline_Ques(Final) 250517-EA.epx 
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+File 1: U:\Water and Health Laboratory\ORGANIKO\C3 - Children's Health Study\Main study\Digitization of questionnaires, diary\baseline digitiz\Final\Baseline_Ques(Final) 250517-EA.epx
+-------------------------------------------
+Title       ORGANIKO_Baseline_Questionnaire 
+Created     24/2/2017 12:13:48              
+Last Edited 25/5/2017 18:10:21              
+Version     1                               
+Cycle       36                              
+-------------------------------------------
+Backup on shutdown: yes
+Project Encryption: none
+
+Dataforms:
+----------------------------------------------------------------------------------------------------
+Caption    Created            Structure Edited   Data Edited        Sections Fields Records Deleted  
+----------------------------------------------------------------------------------------------------
+Base_Quest 24/2/2017 12:13:48 25/5/2017 18:10:21 25/5/2017 18:10:21        8     72     110       8  
+----------------------------------------------------------------------------------------------------
+
+------------------------
+Caption    Fields in key 
+------------------------
+Base_Quest               
+------------------------
+
+Specifications for Export:
+------------------------------------------
+Option                             Value   
+------------------------------------------
+Encoding                              UTF8 
+Export records marked for deletion      No 
+Byte Order Mark                         No 
+Export Field Names (first row)         Yes 
+Quote Character                          " 
+Field Separator                          , 
+Date Separator                           - 
+Time Separator                           : 
+Decimal Separtor                         . 
+New Line Style                     Windows 
+Fixed Format                            No 
+------------------------------------------
+
+-------------------
+Exported Dataforms:
+-------------------
+Base_Quest
+
+====================
+Dataform: Base_Quest
+====================
+Exported observations: 1 - 110
+
+Exported Items:
+------------------------------------------------------------------------------------------------------------------------------------------
+Name                        Type       Length Missing Value(s) Value Label     Question / Caption                                          
+------------------------------------------------------------------------------------------------------------------------------------------
+                                                                                                                                           
+Section7                    Section                                            Editor                                                      
+> Editor                    Integer         1                  _Editor         Editor:                                                     
+                                                                                                                                           
+Section8                    Section                                            Questionnaire No                                            
+> Code                      Integer         3 555              _Code           CODE:                                                       
+> Qcompletion_date          Date (DMY)     10                                  Date                                                        
+> Group                     Integer         1                  _Group          Group                                                       
+> Completion_study          Integer         1 7                _YesNo          Completion of study                                         
+                                                                                                                                           
+Section9                    Section                                            Part A(I): Participants Details                             
+> medulev                   Integer         1 7                _Educationlevel 1 a) Mother's Education Level                               
+> Other_educational_level_m String         50                                  Other                                                       
+> fedulev                   Integer         1 7                _Educationlevel 1 b) Father's Education Level                               
+> Other_educational_level_f String         50                                  Other                                                       
+> mwork                     String         50                                  2) Mothers' Work                                            
+> fwork                     String         50                                  3) Father's Work                                            
+> city_village              String         20                                  4) City/Village                                             
+> pobox                     Integer         4                                  5) P.O BOX                                                  
+> dur_res                   Float           5 555              _dur_res        6) Duration of stay in current residence                    
+                                                                                                                                           
+section3                    Section                                            Part A(II) : Use of Pesticides                              
+> inrep_out                 Integer         3 555              _freq           7a(i) Insect repellant                                      
+> insecticides_out          Integer         3 555              _freq           7a(ii) Insecticides                                         
+> fung_out                  Integer         3 555              _freq           7a(iii) Fungicides                                          
+> herb_out                  Integer         3 555              _freq           7a(iv) Herbicides                                           
+> rodenticides_out          Integer         3 555              _freq           7a(v) Rodenticides                                          
+> inrep_in                  Integer         3 555              _freq           7b(i) Insect repellant                                      
+> insecticides_in           Integer         3 555              _freq           7b(ii) Insecticides                                         
+> fung_in                   Integer         3 555              _freq           7b(iii) Fungicides                                          
+> herb_in                   Integer         3 555              _freq           7b(iv) Herbicides                                           
+> rodenticides_in           Integer         3 555              _freq           7b(v) Rodenticides                                          
+> inrep_lastuse_out         Integer         3 555              _freq           8a(i) Insect repellant                                      
+> insecticides_lastuse_out  Integer         3 555              _freq           8a(ii) Insecticides                                         
+> fung_lastuse_out          Integer         3 555              _freq           8a(iii) Fungicides                                          
+> herb_lastuse_out          Integer         3 555              _freq           8a(iv) Herbicides                                           
+> rodenticides_lastuse_out  Integer         3 555              _freq           8a(v) Rodenticides                                          
+> inrep_lastuse_in          Integer         3 555              _freq           8b(i) Insect repellant                                      
+> insecticides_lastuse_in   Integer         3 555              _freq           8b(ii) Insecticides                                         
+> fung_lastuse_in           Integer         3 555              _freq           8b(iii) Fungicides                                          
+> herb_lastuse_in           Integer         3 555              _freq           8b(iv) Herbicides                                           
+> rodenticides_lastuse_in   Integer         3 555              _freq           8b(v) Rodenticides                                          
+> product_name              String         90                                  9) Name of products                                         
+                                                                                                                                           
+Section1                    Section                                                                                                        
+                                                                                                                                           
+Section10                   Section                                            Part B                                                      
+> Gender                    Integer         1                  _Gender         1) SEX                                                      
+> birthdate                 Date (DMY)     10                                  2) Date of birth                                            
+> handinmouth               Integer         1 7                _YesNo          3) Does the child habitually put its hands in its mouth?    
+> garden_week               Float           5 555              _time           4) How much time does the child spend in gardens per week?  
+> park_week                 Float           5 555              _time           5) How much time does the child spend in parks per week?    
+> run_week                  Float           5 555              _time           running                                                     
+> cyc_week                  Float           5 555              _time           cycling                                                     
+> bask_week                 Float           5 555              _time           basketball                                                  
+> foot_week                 Float           5 555              _time           football                                                    
+> voll_week                 Float           5 555              _time           volleyball                                                  
+> swim_week                 Float           5 555              _time           swimming                                                    
+> danc_week                 Float           5 555              _time           dancing                                                     
+> other_activity_name       String         20                                  Other                                                       
+> other_activity_time       Float           6 555              _time           Other                                                       
+> Other_Ctivity_name_1      String         20                                  Other                                                       
+> Other_activity_time_1     Float           6 555              _time           Other                                                       
+> tv_week                   Float           5 555              _time           Television                                                  
+> comp_week                 Float           5 555              _time           Computer                                                    
+> tablet_week               Float           5 555              _time           Tablet                                                      
+> mobile_week               Float           5 555              _time           Mobile phone                                                
+> other_sedent_name         String         20                                  Other                                                       
+> other_sedent_week         Float           6 555              _time           Other                                                       
+> V20                       Integer         1                                                                                              
+                                                                                                                                           
+Other_sedent_name_1         String         20                                  Other                                                       
+Other_sedent_week_1         Float           6 555              _time           Other                                                       
+                                                                                                                                           
+Section4                    Section                                            Anthropometrics                                             
+> anthr_date_start          Date (DMY)     10                                  Date                                                        
+> Weight_start              Integer         3 555              _Weight_start   Weight (kg)                                                 
+> Height_start              Integer         3 555              _Height_start   Height (cm)                                                 
+> Waist_start               Integer         3 555              _Waist_start    Waist (cm)                                                  
+> anthr_date_endorg         Date (DMY)     10                                  Date                                                        
+> Weight_endorg             Integer         3 555              _Weight_endorg  Weight (kg)                                                 
+> Height_endorg             Integer         3 555              _Height_endorg  Height (cm)                                                 
+> Waist_endorg              Integer         3 555              _Waist_endorg   Waist (cm)                                                  
+> anthr_date_endconv        Date (DMY)     10                                  Date                                                        
+> Weight_endconv            Integer         3 555              _Weight_endconv Weight (kg)                                                 
+> Height_endconv            Integer         3 555              _Height_endconv Height (cm)                                                 
+> Waist_endconv             Integer         3 555              _Waist_endconv  Waist (cm)                                                  
+------------------------------------------------------------------------------------------------------------------------------------------
+
+Files created:
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Content: Filename:                                                                                                                                                                       
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Report   U:\Water and Health Laboratory\ORGANIKO\C3 - Children's Health Study\Main study\Digitization of questionnaires, diary\baseline digitiz\Final\Baseline_Ques(Final) 250517-EA.log 
+csv      U:\Water and Health Laboratory\ORGANIKO\C3 - Children's Health Study\Main study\Digitization of questionnaires, diary\baseline digitiz\Final\Baseline_Ques(Final) 250517-EA.csv 
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Study information:
+-----------------------------------------------------
+Name:                 Value:                          
+-----------------------------------------------------
+Title                 ORGANIKO_Baseline_Questionnaire 
+Purpose                                               
+Geographical Coverage                                 
+Data Collection                                       
+Author                                                
+Created               24/2/2017 12:13:48              
+Last Edited           24/2/2017 12:13:48              
+Version                                             1 
+Funding                                               
+Identifier                                            
+Language              en                              
+Publisher                                             
+Rights                                                
+Abstract                                              
+Design                                                
+Unit of Observation                                   
+-----------------------------------------------------

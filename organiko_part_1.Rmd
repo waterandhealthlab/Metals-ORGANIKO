@@ -1,0 +1,1093 @@
+---
+title: "Effect of an organic food intervention on biomarkers of exposure to lead and cadmium in primary school children: A cluster-randomized cross-over trial - Part 1"
+author: "Nikolaos Efthymiou"
+date: "18/08/2022"
+output:
+  html_document: default
+editor_options:
+  chunk_output_type: console
+---
+
+This script includes Part 1 of the analysis (descriptives) and the dataset that will be the input of Part 2 of the analysis.
+
+```{r initialization, include=FALSE}
+
+## Prepare workspace & install libraries
+rm(list = ls(all = TRUE))
+
+ipak <- function(pkg){
+  new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
+  if (length(new.pkg)) 
+    install.packages(new.pkg, dependencies = TRUE)
+  sapply(pkg, require, character.only = TRUE)
+}
+
+# usage
+packages <- c("readxl","tidyverse","magrittr","knitr","lubridate",
+              "tableone","childsds","psych","EnvStats")
+
+ipak(packages)
+
+
+library(conflicted)  # An Alternative Conflict Resolution Strategy
+conflict_prefer("filter", "dplyr")
+knitr::opts_chunk$set(echo=FALSE, warning = FALSE, results='asis', include=FALSE)
+# reproducible results
+set.seed(1)
+```
+
+```{r baseline-data-reading-and-inspection}
+## Baseline questionnaire - Data inspection
+
+#Three files named:
+#- Baseline_Ques(Final) 250517-EA
+#- Baseline_Ques(Final) 250517-SI
+#- Baseline_Ques(Final) 250517-IC are located in the "Analysis" folder.
+
+#The compiled data file "mergedbaseline"" contains 191 observations and 
+#72 variables. 
+
+#The below actions have been done for data inspection:
+
+#- Read data
+#- Merge the 3 files into 1
+#- Create school variable by deleting last 2 characters of Code
+#- Change variable types into factors/characters
+#- Format dates
+
+#Additional actions:
+
+#- Delete variable V20 because it contains no data
+#- Convert 555 (missing values) to NA
+#- Calculate age at baseline
+
+#+ first subset in order to omit NA
+#+ merge baseline data with age data
+
+#-Merge baseline data with samples per participant data. The file "Samples per participant.csv" 
+#is located in the "Analysis" folder and contains 191 observations and 7 variables. Variable names, description, type and valid values are 
+#described in the file "Variables characteristics" located in the same folder.
+
+# read data & merge 
+baseline1      <- read_delim(file="rawData/Baseline_Ques(Final) 250517-EA.csv", show_col_types = FALSE)
+baseline2      <- read_delim(file="rawData/Baseline_Ques(Final) 250517-SI.csv", show_col_types = FALSE)
+baseline3      <- read_delim(file="rawData/Baseline_Ques(Final) 250517-IC.csv", show_col_types = FALSE)
+samplesperpart <- read_delim(file="rawData/Samples and days per participant.csv", show_col_types = FALSE)
+
+baseline <- bind_rows(baseline1, baseline2, baseline3)
+rm(baseline1, baseline2, baseline3)
+
+# select only Code and Days in organic intervention
+samplesperpart %<>% select(Code,Days_Org)
+
+mergedbaseline <- inner_join(baseline,samplesperpart, by = "Code")
+rm(baseline,samplesperpart)
+
+# remove pesticide usage
+mergedbaseline %<>% select(!contains("_in")&!contains("_out")&!`product_name`)
+```
+
+```{r recode-variables}
+# Code needs to be a character
+# create school variable by deleting last 2 characters of Code 
+mergedbaseline$Code   <- as.character(mergedbaseline$Code)
+mergedbaseline$school <- str_sub(mergedbaseline$Code, end=1)
+
+# change variable types into factors
+mergedbaseline %<>% mutate(across(c("Editor", "Code", "Group", "Completion_study","medulev", "Other_educational_level_m",
+                                    "Other_educational_level_f", "fedulev", "Gender", "handinmouth", "school"),~as_factor(.)))
+
+mergedbaseline %<>% mutate(across(c("city_village", "other_activity_name", "Other_Ctivity_name_1", "other_sedent_name", "Other_sedent_name_1"),~as.character(.)))
+
+mergedbaseline %<>% mutate(across(c("Qcompletion_date", "birthdate", "anthr_date_start","anthr_date_endorg","anthr_date_endconv"),~dmy(.)))
+
+# delete variable V20 because it contains no data
+mergedbaseline %<>% select(!V20) 
+
+# convert 555 (missing values) to NA
+mergedbaseline[mergedbaseline==555] <- NA
+
+# calculate age with decimals
+# calculate the age at the start of the study   
+mergedbaseline$age_baseline <- interval(mergedbaseline$birthdate, mergedbaseline$anthr_date_start  ) / years(1)
+# calculate the age at the end of the organic treatment
+mergedbaseline$age_endorg   <- interval(mergedbaseline$birthdate, mergedbaseline$anthr_date_start  ) / years(1)
+# calculate the age at the end of the conventional treatment
+mergedbaseline$age_endcon   <- interval(mergedbaseline$birthdate, mergedbaseline$anthr_date_endconv) / years(1)
+
+#if age higher than 13 -> NA
+mergedbaseline$age_baseline %<>% {if_else(.>13,NA_real_,.)}
+
+# revalue categorical variables to their actual values
+mergedbaseline$Sex <- recode_factor(mergedbaseline$Gender,"1"="Male", "2"="Female")
+  
+# calculate BMI based on formula: weight/height^2
+mergedbaseline$BMI_start<-mergedbaseline$Weight_start/
+                          ((mergedbaseline$Height_start/100)^2)
+mergedbaseline$BMI_endorg<-mergedbaseline$Weight_endorg/
+                          ((mergedbaseline$Height_endorg/100)^2)
+mergedbaseline$BMI_endcon<-mergedbaseline$Weight_endconv/
+                          ((mergedbaseline$Height_endconv/100)^2)
+
+# calculate BMI SDS based on WHO 2007 growth references
+mergedbaseline$BMI_start_sds <- sds(mergedbaseline$BMI_start,
+                       age = mergedbaseline$age_baseline,
+                       sex = mergedbaseline$Sex, 
+                       male = "Male", female = "Female",
+                       ref = who2007.ref,
+                       item = "bmi",
+                       type = "SDS")
+
+mergedbaseline$BMI_endorg_sds <- sds(mergedbaseline$BMI_endorg,
+                       age = mergedbaseline$age_endorg,
+                       sex = mergedbaseline$Sex, 
+                       male = "Male", female = "Female",
+                       ref = who2007.ref,
+                       item = "bmi",
+                       type = "SDS")
+
+mergedbaseline$BMI_endcon_sds <- sds(mergedbaseline$BMI_endcon,
+                       age = mergedbaseline$age_endcon,
+                       sex = mergedbaseline$Sex, 
+                       male = "Male", female = "Female",
+                       ref = who2007.ref,
+                       item = "bmi",
+                       type = "SDS")
+
+# Check the new BMI variables
+summary(mergedbaseline$BMI_start_sds)
+summary(mergedbaseline$BMI_endorg_sds)
+summary(mergedbaseline$BMI_endcon_sds)
+
+# create categories based on WHO cut-off points for 
+# thinness, normal, overweight and obese.
+# <-2: Thinness, 1>-2: Normal, >1: Overweight, >2: Obese
+mergedbaseline$BMI_for_age_start <- cut(mergedbaseline$BMI_start_sds,
+                               breaks=c(-Inf, -2, 1, 2, Inf),
+                               labels=c("Thinness","Normal","Overweight","Obese"))
+mergedbaseline$BMI_for_age_endorg <- cut(mergedbaseline$BMI_endorg_sds,
+                               breaks=c(-Inf, -2, 1, 2, Inf),
+                               labels=c("Thinness","Normal","Overweight","Obese"))
+mergedbaseline$BMI_for_age_endcon <- cut(mergedbaseline$BMI_endcon_sds,
+                               breaks=c(-Inf, -2, 1, 2, Inf),
+                               labels=c("Thinness","Normal","Overweight","Obese"))
+
+# revalue categorical variables to their actual values: 
+# For 6=Other, 7=Missing and 8=NA use NA
+mergedbaseline$Group1 <- recode_factor(mergedbaseline$Group,"1"="First organic", "2"="First conventional")
+
+mergedbaseline$medulev1 <- recode_factor(mergedbaseline$medulev,"1"="Primary", "2"="Secondary", 
+                                      "3"="University/college", 
+                                      "4"="Master/PhD", "6"= NA_character_,"7"=NA_character_, "8"=NA_character_)
+
+mergedbaseline$fedulev1 <- recode_factor(mergedbaseline$fedulev,"1"="Primary", "2"="Secondary", 
+                                      "3"="University/college", 
+                                      "4"="Master/PhD", "6"= NA_character_,"7"=NA_character_, "8"=NA_character_)
+
+mergedbaseline$Handinmouth1 <- recode_factor(mergedbaseline$handinmouth, "0"="No", "1"="Yes","7"=NA_character_)
+
+# recode Days_Org in categories 0-11 days (dropouts), 12-40 days (active participants)
+mergedbaseline$daysorg <- cut(mergedbaseline$Days_Org,
+                               breaks=c(-Inf, 11, 40),
+                               labels=c("Dropouts","Active participants"))
+
+# recode Days_Org in categories 0-11, 12-21, 22-28, 29-40
+mergedbaseline$daysorgcat <- cut(mergedbaseline$Days_Org,
+                               breaks=c(-Inf, 11, 21, 28, 40),
+                               labels=c("0-11 days","12-21 days","22-28 days","29-40 days"))
+
+# Last make the variable selection
+selectionDescr<-c("Group1","medulev1","fedulev1","Sex","age_baseline",
+                  "Waist_start", "Waist_endorg","Waist_endconv",
+                  "BMI_start","BMI_endorg","BMI_endcon",
+                  "BMI_for_age_start","BMI_for_age_endorg","BMI_for_age_endcon",
+                  "daysorgcat","Handinmouth1")
+
+categorvariablesDescr<-c("Group1","medulev1","fedulev1","Sex",
+                         "BMI_for_age_start","BMI_for_age_endorg","BMI_for_age_endcon",
+                         "daysorgcat","Handinmouth1")
+
+# convert NA values to 0 in columns where the times per week are denoted in order to be included in the stats
+mergedbaseline[c("park_week","garden_week",
+                  "run_week", "cyc_week", "bask_week", "voll_week", "swim_week",
+                  "danc_week", "other_activity_time","Other_activity_time_1",
+                  "tv_week", "comp_week",
+                  "tablet_week", "mobile_week",
+                  "other_sedent_week","Other_sedent_week_1")][is.na(mergedbaseline[c("park_week","garden_week",
+                  "run_week", "cyc_week", "bask_week", "voll_week", "swim_week",
+                  "danc_week", "other_activity_time","Other_activity_time_1",
+                  "tv_week", "comp_week",
+                  "tablet_week", "mobile_week",
+                  "other_sedent_week","Other_sedent_week_1")])] <- 0
+
+# summarize time spent outside
+mergedbaseline$outside_time<-with(mergedbaseline, park_week+garden_week)
+
+# summarize time spent for physical activities
+mergedbaseline$physactiv_time<-with(mergedbaseline, run_week+cyc_week+
+                                       bask_week+voll_week+swim_week+danc_week+
+                                       other_activity_time+Other_activity_time_1)
+
+# summarize time spent for sedentary activities
+mergedbaseline$sedentactiv_time<-with(mergedbaseline, tv_week+comp_week+
+                                                           tablet_week+mobile_week+
+                                                           other_sedent_week+
+                                                           Other_sedent_week_1)
+
+selectionActivities<-c("garden_week","park_week","run_week","cyc_week",
+                       "bask_week","foot_week","voll_week","swim_week",
+                       "danc_week","tv_week","comp_week", "tablet_week",
+                       "mobile_week","outside_time","physactiv_time",
+                       "sedentactiv_time")
+
+# create subset with participants with more than 12 days in the organic phase (active)
+mergedbaseline<-droplevels(mergedbaseline[which(mergedbaseline$Days_Org > 11), ])
+
+# create subset with bmi data of the active participants 
+# per reviewer's request
+bmidata<-mergedbaseline[c("Code","BMI_start","BMI_endorg",
+                  "BMI_start_sds", "BMI_endorg_sds", 
+                  "BMI_for_age_start", "BMI_for_age_endorg")]
+
+# check normality of variables
+qqnorm(mergedbaseline$Waist_start) 
+hist(mergedbaseline$Waist_start)
+
+qqnorm(mergedbaseline$physactiv_time)  
+hist(mergedbaseline$physactiv_time)
+
+qqnorm(mergedbaseline$sedentactiv_time) 
+hist(mergedbaseline$sedentactiv_time)
+
+selectionnonnorm<-c("Waist_start", "Waist_endorg","Waist_endconv")
+selectionactnonnorm<-c("physactiv_time","sedentactiv_time")
+
+
+```
+
+### Table 1 A - Demographic characteristics - Study participants
+
+`r kable(print(CreateTableOne(selectionDescr, data=mergedbaseline, factorVars=categorvariablesDescr, strata="Group1", testNonNormal = kruskal.test, smd=F,addOverall = TRUE), nonnormal=selectionnonnorm), caption="Demographic & other characteristics of participants with >=12 days in the organic phase by group")`
+
+### Table 1 B - Children's activities
+
+`r kable(print(CreateTableOne(selectionActivities, data=mergedbaseline, strata="Group1", testNonNormal = kruskal.test, smd=F), nonnormal=selectionactnonnorm,addOverall = TRUE), caption="Time spent by children outside & in physical and sedentary activities (hours per week) for 149 participants by group")`
+
+```{r ffq-data-reading-and-inspection}
+## FFQ - Food frequency questionnaire
+# Two .csv files named:
+# ffq_digitization-main study_KN_250517 and
+# ffq_digitization-main study_EA_250517 are imported.
+# The merged file contains 135 observations and 201 variables. 
+
+# read data & merge 
+ffq1<-read_delim(file="rawData/ffq_digitization-main study_KN_250517.csv", show_col_types = FALSE)
+
+ffq2<-read_delim(file="rawData/ffq_digitization-main study-EA_250517.csv", show_col_types = FALSE)
+
+mergedffq <- bind_rows(ffq1,ffq2)
+
+# convert NA values to 0 in columns where the times per week are denoted in order to be included in the stats
+mergedffq %<>% mutate(across(ends_with("week"),~ifelse(is.na(.),0,.)))
+
+mergedffq %<>% mutate(Code=as_factor(Code))
+
+# merge baseline data with ffq data
+mergedfqqbaseline <-inner_join(mergedffq, mergedbaseline, by="Code")
+
+# create subset with participants with more than 12 days in the organic phase
+
+mergedfqqbaseline %<>% filter(Days_Org > 11)
+
+# create variable that summarizes milk products 
+mergedfqqbaseline$milkproducts <- with(mergedfqqbaseline, 
+                                Fullfatfreshmilkperweek +  Lowfatfreshmilkperweek + 
+                                  Nofatfreshmilkperweek + Evaporefullfatmilkperweek + 
+                                  Evaporelowfatmilkperweek + Evaporenofatmilkperweek + 
+                                  Condensedmilkperweek + Chocolatemilkperweek +
+                                  Othermilkperweek + 
+                                  Fullfatyogurtperweek + Lowfatyogurtperweek +
+                                  Nofatyogurtperweek +
+                                  Kefalotyrigravierakasericheddarperweek + 
+                                  Fetahalloumifreshanariedamperweek + Softcheeseperweek)
+
+# create variable that summarizes meat & fish products, legumes, eggs, nuts 
+mergedfqqbaseline$meatfisheggsnutslegumes <- with(mergedfqqbaseline, 
+                                           Porkmeatperweek + Sheepgoatmeatperweek + 
+                                             Cowmeatperweek + Chickenrabbitperweek + 
+                                             Liverperweek + 
+                                             Salamibaconmourtatellaperweek + 
+                                             Lountzahamperweek + Cannedmeatperweek + 
+                                             Cannedfishperweek + Fishperweek +
+                                             Eggsperweek + 
+                                             Nutsperweek + Legumesperweek)
+
+# create variable that summarizes vegetables
+mergedfqqbaseline$vegetables <- with(mergedfqqbaseline, Rawvegetablessaladperweek +
+                                Cookedvegetablesperweek)
+
+# create variable that summarizes fruits
+mergedfqqbaseline$fruits <- with(mergedfqqbaseline, Freshfruitsperweek +
+                            Juicesfromfruitsvegetablesperweek)
+
+# create variable that summarizes cereals, potato, rice, whole-grain products
+mergedfqqbaseline$cereals <- with(mergedfqqbaseline, 
+                           CornflakesRicecrispieslowinfiberscerealsperweek + 
+                             AllbranFruitnfiberhighinfiberscerealsperweek + 
+                             Chocolatesugarcerealsperweek + Whitebreadperweek + 
+                             Villagebreadkoulouriperweek + Wholemealbreadblackperweek + 
+                             Wholegrainbreadperweek + Riceperweek + 
+                             Pligouripourgouriperweek + Trahanasperweek + 
+                             Pastakritharakiperweek + Stuffedpastaperweek + 
+                             Ovenpastaperweek + Friedpotatoesperweek + 
+                             Boiledpotatoesperweek + Ovenpotatoesperweek + 
+                             Mashedpotatoesperweek) 
+
+# create variable that summarizes fats, sweets, oils 
+# don't include cookies, olives because the portion is 1 piece
+mergedfqqbaseline$fats <- with(mergedfqqbaseline, Oliveoilperweek + Vegetablesunfloweroilperweek + 
+                          Margarineperweek + Lowfatmargarineperweek + Butterperweek + 
+                          Mayonnaiseperweek + Sugarperweek + Honeyperweek + 
+                          Marmeladespoonsweetsperweek + Merentaperweek +
+                          Chocolatesperweek + 
+                          Icecreamsperweek + Creamsperweek + Cakestartssweetsperweek + 
+                          Gkofretesperweek + Cheesepiesbourekiasouffleperweek + 
+                          Sausagepieschickenpiesperweek + Tahinipiesolivepiesperweek + 
+                          Croissantsdonutsperweek + Crispschipspopcornperweek)
+
+
+selectionFFQsum<-c("milkproducts", "meatfisheggsnutslegumes",
+                   "vegetables","fruits","cereals","fats")
+
+# check normality of variables
+qqnorm(mergedfqqbaseline$milkproducts) #normal
+qqnorm(mergedfqqbaseline$meatfisheggsnutslegumes) #normal
+qqnorm(mergedfqqbaseline$vegetables)  #normal
+qqnorm(mergedfqqbaseline$fruits) #normal
+qqnorm(mergedfqqbaseline$cereals)  #normal
+qqnorm(mergedfqqbaseline$fats) #normal
+```
+
+### Table 1 C - Children's food frequency 
+
+`r kable(print(CreateTableOne(selectionFFQsum, data=mergedfqqbaseline, strata="Group1",addOverall = TRUE)), caption="Frequency of food categories consumed by children during the conventional phase by group (portions per week)")`
+
+## Urinary data
+
+```{r lod-loq-imputation}
+# Read measurements - Units MDA:umol/l, Creatinine:g/l
+meas_mdacr<-read_delim(file="rawData/mda_cr_meas.csv", show_col_types = FALSE)
+
+meas_oh <- read_delim("rawData/Ohdg final concentr.csv", show_col_types = FALSE)
+
+meas_iso    <- read_delim("rawData/Final concentrations_8-isoPGF2a.csv", show_col_types = FALSE)
+
+# remove batches that have QCs recovery above 140% for biomarkers 8-OHdG & 8-isopgf2a
+meas_oh1 <- subset(meas_oh,!(meas_oh$Batch == "21"))
+meas_iso1 <- subset(meas_iso,!(meas_iso$Batch == "6"))
+
+# delete column batch because it is not needed
+meas_oh1<-subset(meas_oh1, select=-Batch) 
+meas_iso1<-subset(meas_iso1, select=-Batch) 
+  
+# merge mda_cr and osi datasets
+meas_osi_cr_in <- meas_mdacr %>% 
+  left_join(meas_oh1) %>% 
+  left_join(meas_iso1)
+
+# Delete observations 2126-1, 2216-2, 6086-2 because they are double,
+# observations from participant 258 because excluded &
+# delete observation 1004 because it is a non-existent sample
+
+meas_osi_cr <- meas_osi_cr_in %>% 
+  filter(!(sample_code %in% c("2126-1","2216-2","6086-2","2581","2582","2583","1004")))
+
+# rename sample so that it is the same with the sample ID in metals dataframe
+meas_osi_cr$sample_code %<>% {if_else(.=="2126-2","2126",.)}
+
+# Creatinine data below LOD (0.25) -> LOD/2 (0.13)
+meas_osi_cr$creatinine[meas_osi_cr$creatinine<0.25] <- 0.13
+
+# Impute MDA values below LOD with LOD/2
+meas_osi_cr$mda %<>% {if_else(.<0.28,0.28/2,.)}
+
+meas_osi_cr$sample_code %<>% as.integer() %>% suppressWarnings()
+
+# read measurements: metals units ug/L
+meas_metals<-read_xlsx("rawData/metals_meas.xlsx")
+
+colnames(meas_metals) <- c("sample_code","Cd","Pb")
+
+# check number of samples below LOD and LOQ
+loq_lod_percent <- tibble(" "  = c("<LOD",">LOD and <LOQ"),
+       "Cd(%)" = c(sum(meas_metals$Cd %>% between(0,0.01 ))/nrow(meas_metals),
+                   sum(meas_metals$Cd %>% between(0.01 ,0.029))/nrow(meas_metals)),
+       "Pb(%)" = c(sum(meas_metals$Pb %>% between(0,0.045))/nrow(meas_metals),
+                   sum(meas_metals$Pb %>% between(0.045,0.135))/nrow(meas_metals))) %>%
+        mutate(`Cd(%)`=round(`Cd(%)`,4)*100,`Pb(%)`=round(`Pb(%)`,4)*100)
+
+# Impute values below LOD with LOD/2 and values between LOD and LOQ with LOQ/2
+meas_metals$Cd %<>% {if_else(between(.,0,0.01),0.01/2,
+                             if_else(between(.,0.01,0.029),0.029/2,.))}
+
+meas_metals$Pb %<>% {if_else(between(.,0,0.045),0.045/2,
+                             if_else(between(.,0.045,0.135),0.135/2,.))}
+
+# append oxidative stress data, cr and metals
+
+meas <- meas_metals %>% 
+  left_join(meas_osi_cr) 
+
+# create sample number variable by deleting first three characters of sample_code
+meas$sample_no_orig = substr(meas$sample_code, 4, 4)
+
+# transform sample codes of participants who followed the opposite pattern 
+# based on their school (203 & 259) so that they follow the same pattern with 
+# the rest participants --- it only changes the last character, so that the 
+# variable of phase can be created based on the conditional ifelse.
+# These transformed sample codes are used only for the creation of the phase
+# variable. For the statistical analysis, the original sample codes are used.
+meas$sample_code1<- meas$sample_code %>% {case_when(. == 2032 ~ 2034,
+                                                   . == 2033 ~ 2035, 
+                                                   . == 2034 ~ 2036,
+                                                   . == 2035 ~ 2032,
+                                                   . == 2036 ~ 2033,
+                                                   . == 2593 ~ 2595,
+                                                   . == 2594 ~ 2596,
+                                                   . == 2595 ~ 2592,
+                                                   . == 2596 ~ 2593,
+                                                   TRUE ~ .)}
+ 
+# create ID variable by deleting last character of sample_code 
+meas$Code<-as.character(meas$sample_code)
+meas$Code = substr(meas$Code,1,nchar(meas$Code)-1)
+
+# create sample number variable by deleting first three characters of sample_code1
+meas$sample_no = substr(meas$sample_code1, 4, 4)
+
+# create school variable by deleting last two characters of Code
+meas$school = substr(meas$Code,1,nchar(meas$Code)-2) 
+
+# create phase variable using conditions for school and sample no 
+meas$phase<-ifelse(
+  (meas$school==1 | meas$school==2 | meas$school==6) & 
+    (meas$sample_no==1 | meas$sample_no==2 | meas$sample_no==3), 
+  "Conventional", 
+  ifelse((meas$school==3 | meas$school==4 | meas$school==5) & 
+           (meas$sample_no==1 | meas$sample_no==5 | meas$sample_no==6),
+         "Conventional", 
+         "Organic"))
+
+str(meas)
+
+# change variable types into factors
+meas[, c("Code", "sample_no", "sample_code","sample_code1","school","phase")]<-
+  lapply(meas[, c("Code", "sample_no", "sample_code","sample_code1","school","phase")],
+         factor)
+
+str(meas)
+
+# merge baseline data with measurement data
+# use the set with the 149 participants for the merging 
+model_data<-droplevels(merge(meas, mergedbaseline, by="Code",all.y = TRUE))
+```
+
+Percentage of samples below the LOD and LOQ (Units Creatinine:g/l,  Cd:μg/L, Pb:μg/L)
+
+Below LOD:  Cd (<0.01) , Pb (<0.045) <br>
+Below LOQ:  Cd (<0.029), Pb (<0.135) 
+`r kable(loq_lod_percent)`
+
+```{r model-data}
+
+model_data %<>% rename(Ohdg = ohdg, Mda = mda, Isopgf2a = isopgf2a)
+
+# keep only the data that we will use on part 2
+model_data <- model_data %>% select(Code,Cd,Pb,Ohdg,Mda,Isopgf2a,creatinine,Sex,phase,Group,sample_no_orig,Group1,age_baseline)
+```
+
+```{r biomarkers-descriptives, include=FALSE}
+# From now on working on ng/L for Cd, Pb
+model_data$Cd1000<-model_data$Cd*1000
+model_data$Pb1000<-model_data$Pb*1000
+model_data$Mda1000<-model_data$Mda*1000
+model_data$Isopgf2a1000<-model_data$Isopgf2a*1000
+
+# adjust for creatinine 
+model_data$adj_Isopgf2a1000  <-model_data$Isopgf2a1000/model_data$creatinine
+model_data$adj_Mda1000       <-model_data$Mda1000/model_data$creatinine
+model_data$adj_Ohdg          <-model_data$Ohdg/model_data$creatinine
+model_data$adj_Cd1000        <-model_data$Cd1000/model_data$creatinine
+model_data$adj_Pb1000        <-model_data$Pb1000/model_data$creatinine
+
+
+# select raw and adjusted variables
+sel_raw<-c("Cd1000", "Pb1000","Ohdg", "Mda1000", "Isopgf2a1000")
+sel_adj<-c("adj_Cd1000","adj_Pb1000", "adj_Ohdg", "adj_Mda1000", "adj_Isopgf2a1000")
+
+
+model_data_raw      <- model_data %>% pivot_longer(cols=sel_raw, values_to = "Measurments", names_to = "Biomarkers") %>% group_by(Biomarkers) 
+
+model_data_adjusted <- model_data %>% pivot_longer(cols=sel_adj, values_to = "Measurments", names_to = "Biomarkers") %>% group_by(Biomarkers) 
+
+data_table     <- function(Data){Data %>% summarise(round(quantile(Measurments, c(0, .05,.25,.5,.75,.95,1), na.rm = TRUE), digits=2) %>% 
+                                                      as.list %>% 
+                                                      as_tibble(), 
+                                                    .groups = "keep")}
+
+# quantiles - removed creatinine and rearranged them to follow the necessary table order
+quantiles_raw <- model_data_raw      %>% data_table()
+quantiles_adj <- model_data_adjusted %>% data_table()
+
+# quantiles by treatment 
+quantiles_rawo <- model_data_raw      %>% filter(phase == "Organic") %>% data_table()
+quantiles_adjo <- model_data_adjusted %>% filter(phase == "Organic") %>% data_table()
+
+
+quantiles_rawc <-  model_data_raw      %>% filter(phase == "Conventional") %>% data_table()
+quantiles_adjc <-  model_data_adjusted %>% filter(phase == "Conventional") %>% data_table()
+
+# Geometric mean for metals - overall and by treatment - raw and creatinine adjusted
+organic_data <- model_data %>% 
+  filter(phase == "Organic")
+
+conventional_data <- model_data %>% 
+  filter(phase == "Conventional")
+
+
+# calculate geometric mean for raw Pb - overall 
+pb_gm <- geometric.mean(model_data$Pb1000)
+
+# calculate geometric mean for raw Pb - organic period
+pb_gm_o <- geometric.mean(organic_data$Pb1000)
+
+# calculate geometric mean for raw Pb - conventional period
+pb_gm_c <- geometric.mean(conventional_data$Pb1000)
+
+# calculate geometric mean for raw Cd - overall 
+cd_gm <- geometric.mean(model_data$Cd1000)
+  
+# calculate geometric mean for raw Cd - organic period
+cd_gm_o <- geometric.mean(organic_data$Cd1000)
+  
+# calculate geometric mean for raw Cd - conventional period
+cd_gm_c <- geometric.mean(conventional_data$Cd1000)
+
+# calculate geometric mean for cr-adjusted Pb - overall 
+crpb_gm <- geometric.mean(model_data$adj_Pb1000)
+  
+# calculate geometric mean for cr-adjusted Pb - organic period
+crpb_gm_o <- geometric.mean(organic_data$adj_Pb1000)
+  
+# calculate geometric mean for cr-adjusted Pb - conventional period
+crpb_gm_c <- geometric.mean(conventional_data$adj_Pb1000)
+
+# calculate geometric mean for cr-adjusted Cd - overall 
+crcd_gm <- geometric.mean(model_data$adj_Cd1000)
+  
+# calculate geometric mean for cr-adjusted Cd - organic period
+crcd_gm_o <- geometric.mean(organic_data$adj_Cd1000)
+  
+# calculate geometric mean for cr-adjusted Cd - conventional period
+crcd_gm_c <- geometric.mean(conventional_data$adj_Cd1000)
+
+pb_gm_data <-rbind(pb_gm,pb_gm_o,pb_gm_c)
+
+cd_gm_data <-rbind(cd_gm,cd_gm_o,cd_gm_c)
+
+crpb_gm_data <-rbind(crpb_gm,crpb_gm_o,crpb_gm_c)
+
+crcd_gm_data <-rbind(crcd_gm,crcd_gm_o,crcd_gm_c)
+
+# Geometric standard deviation for metals - overall and by treatment - raw and creatinine adjusted
+
+# calculate geometric standard deviation for raw Pb - overall 
+pb_gsd <- geoSD(model_data$Pb1000)
+
+# calculate geometric standard deviation for raw Pb - organic period
+pb_gsd_o <- geoSD(organic_data$Pb1000)
+
+# calculate geometric standard deviation for raw Pb - conventional period
+pb_gsd_c <- geoSD(conventional_data$Pb1000)
+
+# calculate geometric standard deviation for raw Cd - overall 
+cd_gsd <- geoSD(model_data$Cd1000)
+  
+# calculate geometric standard deviation for raw Cd - organic period
+cd_gsd_o <- geoSD(organic_data$Cd1000)
+  
+# calculate geometric standard deviation for raw Cd - conventional period
+cd_gsd_c <- geoSD(conventional_data$Cd1000)
+
+# calculate geometric standard deviation for cr-adjusted Pb - overall 
+crpb_gsd <- geoSD(model_data$adj_Pb1000)
+  
+# calculate geometric standard deviation for cr-adjusted Pb - organic period
+crpb_gsd_o <- geoSD(organic_data$adj_Pb1000)
+  
+# calculate geometric standard deviation for cr-adjusted Pb - conventional period
+crpb_gsd_c <- geoSD(conventional_data$adj_Pb1000)
+
+# calculate geometric standard deviation for cr-adjusted Cd - overall 
+crcd_gsd <- geoSD(model_data$adj_Cd1000)
+  
+# calculate geometric standard deviation for cr-adjusted Cd - organic period
+crcd_gsd_o <- geoSD(organic_data$adj_Cd1000)
+  
+# calculate geometric standard deviation for cr-adjusted Cd - conventional period
+crcd_gsd_c <- geoSD(conventional_data$adj_Cd1000)
+
+pb_gsd_data <-rbind(pb_gsd,pb_gsd_o,pb_gsd_c)
+
+cd_gsd_data <-rbind(cd_gsd,cd_gsd_o,cd_gsd_c)
+
+crpb_gsd_data <-rbind(crpb_gsd,crpb_gsd_o,crpb_gsd_c)
+
+crcd_gsd_data <-rbind(crcd_gsd,crcd_gsd_o,crcd_gsd_c)
+```
+
+### Table 2 A - Percentiles of metals and oxidative stress biomarkers overall
+
+- Note: the tables are based on the imputed data
+
+- Units: Cd:ng/L, Pb:ng/L, Ohdg:ug/L MDA:nmol/L 8-iso-pgf2a:ng/L
+
+`r kable (print(quantiles_raw), caption="Quantiles of the raw concentrations")`
+
+- Units: Cd:ng/g Cr, Pb:ng/g Cr, Ohdg:ug/g Cr MDA:nmol/g Cr 8-iso-pgf2a:ng/g Cr
+
+`r kable (print(quantiles_adj), caption="Quantiles of the creatinine adjusted concentrations")`
+
+### Table 2 A - Percentiles of metals and oxidative stress biomarkers during the organic treatment
+
+- Note: the tables are based on the imputed data
+
+- Units: Cd:ng/L, Pb:ng/L, Ohdg:ug/L MDA:nmol/L 8-iso-pgf2a:ng/L
+
+`r kable (print(quantiles_rawo), caption="Quantiles of the raw concentrations during the organic treatment")`
+
+- Units: Cd:ng/g Cr, Pb:ng/g Cr, Ohdg:ug/g Cr MDA:nmol/g Cr 8-iso-pgf2a:ng/g Cr
+
+`r kable (print(quantiles_adjo), caption="Quantiles of the creatinine adjusted concentrations during the organic treatment")`
+
+### Table 2 B - Percentiles of the metals and oxidative stress biomarkers during the conventional treatment
+
+- Note: the tables are based on the imputed data
+
+- Units: Cd:ng/L, Pb:ng/L, Ohdg:ug/L MDA:nmol/L 8-iso-pgf2a:ng/L
+
+`r kable (print(quantiles_rawc), caption="Quantiles of the raw concentrations during the conventional treatment")`
+
+- Units: Cd:ng/g Cr, Pb:ng/g Cr, Ohdg:ug/g Cr MDA:nmol/g Cr 8-iso-pgf2a:ng/g Cr
+
+`r kable (print(quantiles_adjc), caption="Quantiles of the creatinine adjusted concentrations during the conventional treatment")`
+
+### Table 3 A - Geometric means of metals
+
+- Note: the tables are based on the imputed data
+
+- Units: Cd:ng/L, Pb:ng/L
+
+`r kable (print(pb_gm_data), caption="Geometric means of raw lead (overall, organic period (o), conventional period(c)")`
+
+`r kable (print(cd_gm_data), caption="Geometric means of raw cadmium (overall, organic period (o), conventional period(c)")`
+
+- Units: Cd:ng/g Cr, Pb:ng/g Cr
+
+`r kable (print(crpb_gm_data), caption="Geometric means of creatinine-adjusted lead (overall, organic period (o), conventional period(c)")`
+
+`r kable (print(crcd_gm_data), caption="Geometric means of creatinine-adjusted cadmium (overall, organic period (o), conventional period(c)")`
+
+### Table 3 B - Geometric standard deviations of metals
+
+- Note: the tables are based on the imputed data
+
+- Units: Cd:ng/L, Pb:ng/L
+
+`r kable (print(pb_gsd_data), caption="Geometric standard deviations of raw lead (overall, organic period (o), conventional period(c)")`
+
+`r kable (print(cd_gsd_data), caption="Geometric standard deviations of raw cadmium (overall, organic period (o), conventional period(c)")`
+
+- Units: Cd:ng/g Cr, Pb:ng/g Cr
+
+`r kable (print(crpb_gsd_data), caption="Geometric standard deviations of creatinine-adjusted lead (overall, organic period (o), conventional period(c)")`
+
+`r kable (print(crcd_gsd_data), caption="Geometric standard deviations of creatinine-adjusted cadmium (overall, organic period (o), conventional period(c)")`
+
+## Percent change - Baseline and after 40 days of organic diet 
+
+```{r percent change, include=FALSE}
+# For % change between baseline and after 40 days of organic diet, 
+# we need the sample before the 
+# beginning of the organic treatment and the last sample of the organic treatment
+
+# sample before organic treatment for Group 1 -> baseline or sample no=1
+# last sample of organic treatment for Group 1 -> sample no=4
+# sample before organic treatment for Group 2 -> last sample of conventional treatment or 
+# sample no=3
+# last sample of organic treatment for Group 2 -> sample no=6
+
+
+# check normality of variables
+qqnorm(model_data$Pb1000)
+qqnorm(model_data$adj_Pb1000)
+
+# log-transform urinary data
+model_data$logPb1000<-log(model_data$Pb1000)
+model_data$logadj_Pb1000<-log(model_data$adj_Pb1000)
+
+# check normality of variables again
+qqnorm(model_data$logPb1000)
+qqnorm(model_data$logadj_Pb1000)
+
+# check normality of variables
+qqnorm(model_data$Cd1000)
+qqnorm(model_data$adj_Cd1000)
+
+# log-transform urinary data
+model_data$logCd1000<-log(model_data$Cd1000)
+model_data$logadj_Cd1000<-log(model_data$adj_Cd1000)
+
+
+# check normality of variables again
+qqnorm(model_data$logCd1000)
+qqnorm(model_data$logadj_Cd1000)
+
+# log-transform oxidative stress data
+model_data$logOhdg<-log(model_data$Ohdg)
+model_data$logadj_Ohdg<-log(model_data$adj_Ohdg)
+
+# Make a small dataset with ID, Group, sample number, compounds
+model_data_small<-subset(model_data, select=c(
+  "Code", "Group","sample_no_orig","logPb1000","logadj_Pb1000","logCd1000","logadj_Cd1000"))
+
+# Add a variable that indicates which sample is "before" and which sample is "after"
+# to calculate the change
+model_data_small$BeforeAfter<-with(model_data_small, ifelse((Group=="1" & sample_no_orig=="1")
+                                            |(Group=="2" & sample_no_orig=="3"),
+                                            "bef",
+                                            ifelse((Group=="1" & sample_no_orig=="4")
+                                                   |(Group=="2" & sample_no_orig=="6"),
+                                            "aft",
+                                            NA)))
+# subset to remove NAs
+model_data_small1<-subset(model_data_small, !is.na(BeforeAfter))
+
+# reshape datase to wide format so that the before-after comaprison can be done
+changedata0<-reshape(model_data_small1, timevar = "BeforeAfter", idvar = "Code", direction = "wide")
+
+# select only participants that have both before and after samples
+changedata.wide<-changedata0[complete.cases(changedata0),]
+
+# check for each variable the percent change 
+# %(last of conventional-end of organic)/last of conventional
+
+# Pb
+changedata.wide$Pb_befaft<-((changedata.wide$logPb1000.bef
+                        -changedata.wide$logPb1000.aft)
+                        /changedata.wide$logPb1000.bef)*100 
+
+changedata.wide$Pbcr_befaft<-((changedata.wide$logadj_Pb1000.bef
+                        -changedata.wide$logadj_Pb1000.aft)
+                        /changedata.wide$logadj_Pb1000.bef)*100  
+
+
+changedata.wide$Cd_befaft<-((changedata.wide$logCd1000.bef
+                        -changedata.wide$logCd1000.aft)
+                        /changedata.wide$logCd1000.bef)*100 
+
+changedata.wide$Cdcr_befaft<-((changedata.wide$logadj_Cd1000.bef
+                        -changedata.wide$logadj_Cd1000.aft)
+                        /changedata.wide$logadj_Cd1000.bef)*100  
+
+# one sample t-test
+Pb_test<-t.test(changedata.wide$Pb_befaft)
+Pbcr_test<-t.test(changedata.wide$Pbcr_befaft)
+
+
+Cd_test<-t.test(changedata.wide$Cd_befaft)
+Cdcr_test<-t.test(changedata.wide$Cdcr_befaft)
+# prepare dataframe with all CIs (non-creatinine adjusted)
+ttestCI<-rbind.data.frame(round(Pb_test$conf.int, digits=1),
+                          round(Cd_test$conf.int, digits=1),
+                          deparse.level = 2)
+
+# prepare dataframe with all CIs (creatinine adjusted)
+ttestCI_cr<-rbind.data.frame(round(Pbcr_test$conf.int, digits=1),
+                             round(Cdcr_test$conf.int, digits=1),
+                          deparse.level = 2)
+
+# prepare dataframe with all p-values (non-creatinine adjusted)
+ttestpvalue<-rbind.data.frame(round(Pb_test$p.value, digits=3),
+                              round(Cd_test$p.value, digits=3),
+                              deparse.level = 2)
+
+# prepare dataframe with all p-values (creatinine adjusted)
+ttestpvalue_cr<-rbind.data.frame(round(Pbcr_test$p.value, digits=3),
+                                 round(Cdcr_test$p.value, digits=3),
+                              deparse.level = 2)
+
+# prepare dataframe with all estimates (non-creatinine adjusted)
+ttestestimate<-rbind.data.frame(round(Pb_test$estimate, digits=1),
+                                round(Cd_test$estimate, digits=1),
+                                deparse.level = 2)
+
+# prepare dataframe with all estimates (creatinine adjusted)
+ttestestimate_cr<-rbind.data.frame(round(Pbcr_test$estimate, digits=1),
+                                   round(Cdcr_test$estimate, digits=1),
+                                deparse.level = 2)
+        
+# prepare dataframe with all estimates, CIs, p-values (non-creatinine adjusted)
+pchangetable<- cbind.data.frame(ttestestimate, ttestCI, ttestpvalue, deparse.level = 2)
+names(pchangetable)<-c("estimate","lowerCI","upperCI","pvalue")
+rownames(pchangetable)<-c("logPb","logCd")
+
+# prepare dataframe with all estimates, CIs, p-values (creatinine adjusted)
+pchangetable_cr<- cbind.data.frame(ttestestimate_cr, ttestCI_cr, ttestpvalue_cr,
+                                   deparse.level = 2)
+names(pchangetable_cr)<-c("estimate","lowerCI","upperCI","pvalue")
+rownames(pchangetable_cr)<-c("log-cradjPb","log-cradjCd")
+
+model_iso <- model_data %>% 
+  filter(!is.na(Isopgf2a1000))
+
+model_oh <- model_data %>% 
+  filter(!is.na(Ohdg))
+
+
+```
+
+### Tables 4 - Percent change for last conventional sample to last organic sample for Pb, Cd
+- Outcome: %(last of conventional-end of organic)/last of conventional
+- Note: the tables are based on the imputed data
+
+- Units: Cd:ng/L, Pb:ng/L
+
+`r kable(print(pchangetable, caption="Percent change - baseline and after 40 days of organic diet (log-transformed and non-creatinine-adjusted)"))`
+
+- Units: Cd:ng/g Cr, Pb:ng/g Cr
+
+`r kable(print(pchangetable_cr, caption="Percent change - baseline and after 40 days of organic diet (log-transformed and creatinine-adjusted)"))`
+
+### Table 5 - Summary tables of metal metabolites and oxidative stress biomarkers overall and by treatment
+
+- Note: the tables are based on the imputed data
+
+- Units: Cd:ng/L, Pb:ng/L, Ohdg:ug/L MDA:nmol/L 8-iso-pgf2a:ng/L
+
+
+`r kable(print(CreateContTable(c("Cd1000","Pb1000","Mda1000"), strata=c("phase"),model_data, testNonNormal = kruskal.test, smd=F,addOverall = TRUE), nonnormal=sel_raw), caption="Summary table of measurements per phase - non-creatinine adjusted")`
+
+`r kable(print(CreateContTable("Isopgf2a1000", strata=c("phase"),model_iso, testNonNormal = kruskal.test, smd=F,addOverall = TRUE), nonnormal=sel_raw), caption="Summary table of measurements per phase - non-creatinine adjusted")`
+
+`r kable(print(CreateContTable("Ohdg", strata=c("phase"),model_oh, testNonNormal = kruskal.test, smd=F,addOverall = TRUE), nonnormal=sel_raw), caption="Summary table of measurements per phase - non-creatinine adjusted")`
+
+- Units: Cd:ng/g Cr, Pb:ng/g Cr, Ohdg:ug/g Cr MDA:nmol/g Cr 8-iso-pgf2a:ng/g Cr
+
+`r kable(print(CreateContTable(c("adj_Cd1000","adj_Pb1000","adj_Mda1000"), strata=c("phase"),model_data, testNonNormal = kruskal.test, smd=F,addOverall = TRUE), nonnormal=sel_adj), caption="Summary table of measurements per phase - creatinine adjusted")`
+
+`r kable(print(CreateContTable("adj_Isopgf2a1000", strata=c("phase"),model_iso, testNonNormal = kruskal.test, smd=F,addOverall = TRUE), nonnormal=sel_adj), caption="Summary table of measurements per phase - creatinine adjusted")`
+
+`r kable(print(CreateContTable("adj_Ohdg", strata=c("phase"),model_oh, testNonNormal = kruskal.test, smd=F,addOverall = TRUE), nonnormal=sel_adj), caption="Summary table of measurements per phase - creatinine adjusted")`
+
+
+## Boxplots
+
+The boxplots are included in the script as additional material to what is included in the manuscript. The boxplots are not included in the manuscript.
+In the boxplots of Cd and Pb the upper 5% of values have been excluded to make the plots easier to read. Imputed data are included. 
+
+```{r boxplots, include=TRUE}
+# plot measurements per sample  per group
+ggplot(model_data %>% filter(Cd1000 < quantile(Cd1000, 0.95, na.rm=TRUE)), 
+       aes(x=sample_no_orig, y=Cd1000, fill=phase))+
+  geom_boxplot()+
+  facet_grid(~Group1)+
+  theme_light()+
+  ylab("Cd (ng/l) - excl. >0.95")+
+  xlab("")+
+  scale_fill_brewer(palette ="Greens")+ 
+  theme(legend.position="bottom")
+
+ggplot(model_data %>% filter(adj_Cd1000 < quantile(adj_Cd1000, 0.95, na.rm=TRUE)), 
+       aes(x=sample_no_orig, y=adj_Cd1000, fill=phase))+
+  geom_boxplot(na.rm=TRUE)+
+  facet_grid(~Group1)+
+  theme_light()+
+  ylab("creatinine adjusted Cd (ng/g) - excl. >0.95")+
+  xlab("")+
+  scale_fill_brewer(palette ="Greens")+ 
+  theme(legend.position="bottom")
+
+ggplot(model_data %>% filter(Pb1000 < quantile(Pb1000, 0.95, na.rm=TRUE)) , 
+       aes(x=sample_no_orig, y=Pb1000, fill=phase))+
+  geom_boxplot()+
+  facet_grid(~Group1)+
+  theme_light()+
+  ylab("Pb (ng/l) - excl. >0.95")+
+  xlab("")+
+  scale_fill_brewer(palette ="Greens")+ 
+  theme(legend.position="bottom")
+
+ggplot(model_data %>% filter(adj_Pb1000 < quantile(model_data$adj_Pb1000, 0.95, na.rm=TRUE)), 
+       aes(x=sample_no_orig, y=adj_Pb1000, fill=phase), na.rm=TRUE)+
+  geom_boxplot()+
+  facet_grid(~Group1)+
+  theme_light()+
+  ylab("creatinine adjusted Pb (ng/g) - excl. >0.95")+
+  xlab("")+
+  scale_fill_brewer(palette ="Greens")+ 
+  theme(legend.position="bottom")
+```
+
+## Spearman correlations 
+```{r sperman-correlations, include=TRUE}
+spearman_dataset = bind_rows(model_data,model_data %>% mutate(phase="Overall"))
+
+spearman_dataset %>% group_by(phase) %>% summarise(`Cd1000~Pb1000`=cor(Cd1000, Pb1000, method = "spearman",  use="complete.obs"),
+                                                             `adj_Cd1000~adj_Pb1000`=cor(adj_Cd1000, adj_Pb1000, method = "spearman",  use="complete.obs")) %>% kable()
+```
+
+```{r scaling_centering_log-transfomation}
+model_data_log_centered <- model_data  %>%
+  mutate(across(c("Cd1000","Pb1000","Ohdg","Mda1000","Isopgf2a1000",
+                  "adj_Cd1000","adj_Pb1000","adj_Ohdg","adj_Mda1000","adj_Isopgf2a1000",
+                  "creatinine"),~scale(log(.))[,]))
+model_data_log_centered %<>% mutate(across("age_baseline",~scale(.)[,]))
+```
+
+```{r day-from-treatment-and-baseline-treatment}
+# reform dataset - Change variable types into factors/numeric
+model_data_log_centered <- droplevels(model_data_log_centered)
+model_data_log_centered$ID <- as.factor(paste("P", model_data_log_centered$Code, sep = ""))
+model_data_log_centered$GID <- as.factor(paste("G", model_data_log_centered$Group, sep = ""))
+model_data_log_centered$ST <- as.numeric(model_data_log_centered$sample_no_orig)
+# import sample dates
+#- from the original file
+#- Kept only white cap rows
+#- Deleted all columns besides code and date
+#- 941 rows with participant samples left
+#- Deleted double samples 6086-2, 2126-2, 2216-2
+#- calculate days from baseline
+#- Calculate days from treatment only for conventional phase
+# read excel file
+sample_dates <- read_excel("rawdata/sample_dates.xlsx",
+  col_types = c("text", "date")
+)
+# add ID
+sample_dates$ID <- paste("P", substr(sample_dates$sample_code,
+  start = 1,
+  stop = 3
+), sep = "")
+# add sample number
+sample_dates$sample_no_orig <- as.character(substr(sample_dates$sample_code,
+  start = 4, stop = 4
+))
+# create new dataset with ID, sample number and sampling date
+unique_sample_dates <- unique(sample_dates[, c(
+  "ID", "sample_no_orig",
+  "sampling_date"
+)])
+# create dataset that has 1 new variable:
+# Diff: the difference in days between each sample for each participant
+df <- unique_sample_dates %>%
+  group_by(ID) %>%
+  mutate(Diff = c(0, diff(sampling_date)))
+# merge df dataset with lmmdata dataset by ID and sample number
+lmmdata_dates <- inner_join(df, model_data_log_centered, by = c("ID", "sample_no_orig"))
+# subset and include only conventional treatment samples
+lmmdata_dates1 <- subset(lmmdata_dates, lmmdata_dates$phase == "Conventional")
+# Using the variable for the number of days (Diff) to sum the cummulative
+# number of days from the start of the conventional treatment by participant
+lmmdata_dates2 <- lmmdata_dates1 %>%
+  group_by(ID) %>%
+  mutate(DaysfromTreatment = cumsum(Diff))
+# summary(lmmdata_dates2$DaysfromTreatment) - only for conventional period
+#Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#    0.0     0.0    15.0    15.2    22.0    42.0 
+# remove sets no longer needed
+rm(lmmdata_dates, lmmdata_dates1)
+# For some participants the organic phase started a few days after the collection of the
+# baseline sample or the last conventional phase sample. The date of the start of the
+# organic phase has been used as a reference to calculate the number of days from the
+# start of organic phase. The corrected dates (differing in the sample 1 - baseline -,
+# or sample 3 - the last sample of the conventional phase -) are included in this
+# dataset (refered to as "organic treatment start dates")
+# import organic treatment start dates
+# sampling date different than start of organic treatment so for actual days of organic treatment this file was used
+# calculate days from baseline
+# Calculate days from treatment only for organic phase
+# read excel file
+org_dates <- read_excel("rawData/org_start_dates.xlsx",
+  col_types = c("text", "date")
+)
+# add ID
+org_dates$ID <- paste("P", substr(org_dates$sample_code,
+  start = 1,
+  stop = 3
+), sep = "")
+# add sample no
+org_dates$sample_no_orig <- as.character(substr(org_dates$sample_code,
+  start = 4, stop = 4
+))
+# create new dataset with ID, sample number and sampling date
+unique_org_dates <- unique(org_dates[, c(
+  "ID", "sample_no_orig",
+  "sampling_date"
+)])
+# create dataset that has 1 new variable:
+# Diff: the difference in days between each sampling for each participant
+df1 <- unique_org_dates %>%
+  group_by(ID) %>%
+  mutate(Diff = c(0, diff(sampling_date)))
+# merge df dataset with lmmdata dataset by ID and sample number
+lmmdata_dates3 <- inner_join(df1, model_data_log_centered, by = c("ID", "sample_no_orig"))
+# subset and include only organic treatment samples
+lmmdata_dates4 <- subset(lmmdata_dates3, lmmdata_dates3$phase == "Organic")
+# Using the variable for the number of days (Diff) to sum the cumulative
+# number of days from the start of the organic treatment by participant
+lmmdata_dates5 <- lmmdata_dates4 %>%
+  group_by(ID) %>%
+  mutate(DaysfromTreatment = cumsum(Diff))
+# summary(lmmdata_dates5$DaysfromTreatment) - only for organic period
+#    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#   9.00   12.00   23.00   23.41   37.00   40.00 
+# remove datasets not needed
+rm(lmmdata_dates3, lmmdata_dates4)
+# merge datasets to include all samples
+lmmdata_dates_final <- rbind.data.frame(lmmdata_dates2, lmmdata_dates5)
+# summary(lmmdata_dates_final$DaysfromTreatment) - including all samples - Conventional and Organic
+#    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#    0.00    9.00   17.00   19.21   36.00   42.00
+# remove datasets not needed
+rm(lmmdata_dates2, lmmdata_dates5)
+# exclude baseline sample
+lmmdata_noBL <- subset(lmmdata_dates_final, ST >= 2)
+# summary(lmmdata_noBL$DaysfromTreatment) - excluding baseline sample - Conventional and Organic
+#    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#   2.00   12.00   23.00   23.25   37.00   42.00
+# include baseline sample and biomarkers
+lmmdata_onlyBL <- subset(
+  lmmdata_dates_final[c(
+    "ID", "Cd1000", "Pb1000","Ohdg", "Mda1000", "Isopgf2a1000",
+    "adj_Cd1000","adj_Pb1000", "adj_Ohdg", "adj_Mda1000", "adj_Isopgf2a1000","ST")],ST <= 1)
+# merge datasets without baseline and with baseline for biomarkers
+model_data_log_centered <- merge(lmmdata_onlyBL, lmmdata_noBL, by = "ID", all.y = TRUE, suffixes = c("_BL", "_TR"))
+# the baseline_samples end in _BL
+```
+
+```{r save, include=FALSE}
+model_data_log_centered %<>% select("ID",
+                                    "Cd1000_BL","Pb1000_BL","Ohdg_BL","Mda1000_BL","Isopgf2a1000_BL",
+                                    "Cd1000_TR","Pb1000_TR","Ohdg_TR","Mda1000_TR","Isopgf2a1000_TR",
+                                    "adj_Cd1000_BL","adj_Pb1000_BL","adj_Ohdg_BL","adj_Mda1000_BL","adj_Isopgf2a1000_BL",
+                                    "adj_Cd1000_TR","adj_Pb1000_TR","adj_Ohdg_TR","adj_Mda1000_TR","adj_Isopgf2a1000_TR",
+                                    "creatinine","Sex","phase","DaysfromTreatment","age_baseline")
+
+saveRDS(model_data_log_centered, file="organiko_metals_part1.rds")
+```
+
+
+```{r session, include=FALSE}
+# Session information
+sessionInfo()
+```

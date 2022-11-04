@@ -1,0 +1,278 @@
+---
+title: "Effect of an organic food intervention on biomarkers of exposure to lead and cadmium in primary school children: A cluster-randomized cross-over trial - Part 2"
+author: "Nikolaos Efthymiou"
+date: "18/08/2022"
+output:
+  html_document: default
+editor_options:
+  chunk_output_type: console
+---
+
+# Regression analysis (mixed effects models)
+
+This script includes the regression analysis (Part 2).
+The output of the Part 1 script needs to be created (organiko_metals_part1.rds)
+
+```{r initialization, include=FALSE}
+
+## Prepare workspace & install libraries
+rm(list = ls(all = TRUE))
+
+ipak <- function(pkg){
+  new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
+  if (length(new.pkg)) 
+    install.packages(new.pkg, dependencies = TRUE)
+  sapply(pkg, require, character.only = TRUE)
+}
+
+# usage
+packages <- c("readxl","tidyverse","magrittr","knitr","lubridate",
+              "lmerTest","lme4","Matrix","sjPlot","broom.mixed","gridExtra","easystats","merDeriv")
+
+ipak(packages)
+
+
+### Other libraries
+###
+library(conflicted)  # An Alternative Conflict Resolution Strategy
+conflict_prefer("filter", "dplyr")
+conflict_prefer("lmer", "lmerTest")
+knitr::opts_chunk$set(echo=FALSE, warning = FALSE, results='asis')
+# reproducible results
+set.seed(1)
+```
+
+```{r linear mixed effect models - prepare database, echo=FALSE}
+model_data_log_centered <- readRDS("organiko_metals_part1.rds")
+```
+
+## Main analysis
+
+### Primary outcomes
+
+Selection of models for the analysis of main outcomes:
+
+Mixed Effect Model:
+
+
+ + Outcome: Pb/Cd
+ + Variable of interest: organic treatment (vs conventional)
+ + Random part: participants
+ + Adjustment for: baseline levels of outcome (Pb/Cd), time (days from treatment), creatinine
+ + Creatinine adjustment:
+    + Pb/Cd divided by creatinine
+    + raw measurements of Pb/Cd and creatinine as fixed effect
+ + Interaction term: time*phase
+    + if p-value>0.1 remove from the model  
+
+```{r set1}
+# set1
+models <- tibble(Response     = c("adj_Pb1000_TR","Pb1000_TR","adj_Cd1000_TR","Cd1000_TR"),
+                 Predictors_1 = c("adj_Pb1000_BL","Pb1000_BL + creatinine","adj_Cd1000_BL","Cd1000_BL + creatinine"),
+                 Predictors_2 = "DaysfromTreatment + phase",
+                 Predictors_3 = c("phase*DaysfromTreatment"),
+                 Predictors_4 = "(1 | ID)")
+
+model_list <- list()
+
+
+for (i in 1:nrow(models)) {
+  # formula with interaction term
+  form <- as.formula(models %$% str_c(Response[i], " ~ ", Predictors_1[i], " + ", Predictors_2[i], " + ", Predictors_3[i], " + ", Predictors_4[i]))
+  model <- lmer(form, model_data_log_centered)
+  
+  # if p.value of interaction term >0.1 then remove it from formula
+  if (model %>% tidy() %>% filter(str_detect(term,":")) %$% p.value > 0.1) {
+    form <- as.formula(models %$% str_c(Response[i], " ~ ", Predictors_1[i], " + ", Predictors_2[i], " + ", Predictors_4[i]))
+    model <- lmer(form, model_data_log_centered)    
+  }
+  
+  model_list[[i]] <- model
+}
+
+tab_model(model_list , show.icc = TRUE, digits = 3, show.obs = TRUE, show.re.var = TRUE)
+
+# fdr adjustment
+model_list %>% 
+map(~tidy(.)) %>% bind_rows() %>% filter(!term=="(Intercept)") %>%  filter(!str_detect(term, "sd")) %>% 
+  mutate(p.adjust = p.adjust(p.value,method="BH"),.after=p.value) %>% 
+  mutate(Response = c("adj_Pb1000_TR","adj_Pb1000_TR", "adj_Pb1000_TR","adj_Pb1000_TR",
+  "Pb1000_TR", "Pb1000_TR", "Pb1000_TR", "Pb1000_TR","Pb1000_TR",
+"adj_Cd1000_TR", "adj_Cd1000_TR", "adj_Cd1000_TR", "adj_Cd1000_TR", 
+"Cd1000_TR", "Cd1000_TR","Cd1000_TR","Cd1000_TR"),.before=term) %>%
+  arrange(p.adjust) %>%
+  select(!group) %>% 
+  kable()
+
+ggplot(model_data_log_centered, aes(DaysfromTreatment ,adj_Pb1000_TR,colour = phase)) +  
+  geom_point(na.rm = TRUE) +
+  geom_smooth(formula = y ~ x,method = "lm", se = FALSE) +
+  labs(y = "Pb (ng/g cr)", x = "Time (days)") + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(), axis.line = element_line(colour = "black"))
+  
+
+ggplot(model_data_log_centered, aes(DaysfromTreatment ,Pb1000_TR,colour = phase)) +  
+  geom_point(na.rm = TRUE) +
+  geom_smooth(formula = y ~ x,method = "lm", se = FALSE) +
+  labs(y = "Pb (ng/L)", x = "Time (days)") + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(), axis.line = element_line(colour = "black"))
+
+ggplot(model_data_log_centered, aes(DaysfromTreatment ,adj_Cd1000_TR,colour = phase)) +  
+  geom_point(na.rm = TRUE) +
+  geom_smooth(formula = y ~ x,method = "lm", se = FALSE) +
+  labs(y = "Cd (ng/g cr)", x = "Time (days)") + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(), axis.line = element_line(colour = "black"))
+
+ggplot(model_data_log_centered, aes(DaysfromTreatment ,Cd1000_TR,colour = phase)) +  
+  geom_point(na.rm = TRUE) +
+  geom_smooth(formula = y ~ x,method = "lm", se = FALSE) +
+  labs(y = "Cd (ng/L)", x = "Time (days)") + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(), axis.line = element_line(colour = "black"))
+```
+
+### Secondary outcomes
+
+Selection of models for the analysis of secondary outcomes:
+
+Mixed Effect Model:
+
+
+ + Outcome: 8-iso-PGF2a/MDA/8-OHdG
+ + Variable of interest: Cd/Pb
+ + Random part: participants
+ + Adjustment for: baseline levels of outcome (8-iso-PGF2a/MDA/8-OHdG), time (days from treatment), creatinine, age, sex 
+ + Creatinine adjustment: 
+    + 8-iso-PGF2a/MDA/8-OHdG divided by creatinine
+    + raw measurements of 8-iso-PGF2a/MDA/8-OHdG and creatinine as fixed effect 
+
+
+#### Creatinine adjusted 8-iso-PGF2a/MDA/8-OHdG    
+
+
+```{r set2}
+# set2
+models <- tibble(Response     = c("adj_Ohdg_TR","adj_Mda1000_TR","adj_Isopgf2a1000_TR","adj_Ohdg_TR","adj_Mda1000_TR","adj_Isopgf2a1000_TR"),
+                 Predictors_1 = c("adj_Ohdg_BL","adj_Mda1000_BL","adj_Isopgf2a1000_BL","adj_Ohdg_BL","adj_Mda1000_BL","adj_Isopgf2a1000_BL"),
+                 Predictors_2 = c("adj_Cd1000_TR","adj_Cd1000_TR","adj_Cd1000_TR","adj_Pb1000_TR","adj_Pb1000_TR","adj_Pb1000_TR"),
+                 Predictors_3 = "Sex + age_baseline + DaysfromTreatment",
+                 Predictors_4 = "(1 | ID)")
+
+model_list_osi1 <- list()
+
+
+for (i in 1:nrow(models)) {
+  # formula with interaction term
+  form <- as.formula(models %$% str_c(Response[i], " ~ ", Predictors_1[i], " + ", Predictors_2[i], " + ", Predictors_3[i], " + ", Predictors_4[i]))
+  model <- lmer(form, model_data_log_centered)
+  
+  model_list_osi1 [[i]] <- model
+}
+
+tab_model(model_list_osi1  , show.icc = TRUE, digits = 3, show.obs = TRUE, show.re.var = TRUE)
+
+ggplot(model_data_log_centered, aes(adj_Ohdg_TR ,adj_Cd1000_TR)) +  
+  geom_point(na.rm = TRUE) +
+  geom_smooth(formula = y ~ x,method = "lm", se = FALSE)
+
+ggplot(model_data_log_centered, aes(adj_Ohdg_TR ,adj_Pb1000_TR)) +  
+  geom_point(na.rm = TRUE) +
+  geom_smooth(formula = y ~ x,method = "lm", se = FALSE)
+
+ggplot(model_data_log_centered, aes(adj_Mda1000_TR ,adj_Cd1000_TR)) +  
+  geom_point(na.rm = TRUE) +
+  geom_smooth(formula = y ~ x,method = "lm", se = FALSE)
+
+ggplot(model_data_log_centered, aes(adj_Mda1000_TR ,adj_Pb1000_TR)) +  
+  geom_point(na.rm = TRUE) +
+  geom_smooth(formula = y ~ x,method = "lm", se = FALSE)
+
+ggplot(model_data_log_centered, aes(adj_Isopgf2a1000_TR ,adj_Cd1000_TR)) +  
+  geom_point(na.rm = TRUE) +
+  geom_smooth(formula = y ~ x,method = "lm", se = FALSE)
+
+ggplot(model_data_log_centered, aes(adj_Isopgf2a1000_TR ,adj_Pb1000_TR)) +  
+  geom_point(na.rm = TRUE) +
+  geom_smooth(formula = y ~ x,method = "lm", se = FALSE)
+```
+
+#### Raw measurements of 8-iso-PGF2a/MDA/8-OHdG and creatinine as fixed effect
+
+```{r set3}
+# set3
+models <- tibble(Response     = c("Ohdg_TR","Mda1000_TR","Isopgf2a1000_TR","Ohdg_TR","Mda1000_TR","Isopgf2a1000_TR"),
+                 Predictors_1 = c("Ohdg_BL + creatinine","Mda1000_BL + creatinine","Isopgf2a1000_BL + creatinine","Ohdg_BL + creatinine",
+                                  "Mda1000_BL + creatinine","Isopgf2a1000_BL + creatinine"),
+                 Predictors_2 = c("Cd1000_TR","Cd1000_TR","Cd1000_TR","Pb1000_TR","Pb1000_TR","Pb1000_TR"),
+                 Predictors_3 = "Sex + age_baseline + DaysfromTreatment",
+                 Predictors_4 = "(1 | ID)")
+
+model_list_osi2 <- list()
+
+
+for (i in 1:nrow(models)) {
+  # formula with interaction term
+  form <- as.formula(models %$% str_c(Response[i], " ~ ", Predictors_1[i], " + ", Predictors_2[i], " + ", Predictors_3[i], " + ", Predictors_4[i]))
+  model <- lmer(form, model_data_log_centered)
+  
+  model_list_osi2[[i]] <- model
+}
+
+tab_model(model_list_osi2 , show.icc = TRUE, digits = 3, show.obs = TRUE, show.re.var = TRUE)
+
+model_list_osi <- append(model_list_osi1, model_list_osi2)
+
+# fdr adjustment taking in account all models for second objective
+model_list_osi %>% 
+map(~tidy(.)) %>% bind_rows() %>% filter(!term=="(Intercept)") %>%  filter(!str_detect(term, "sd")) %>% 
+  mutate(p.adjust = p.adjust(p.value,method="BH"),.after=p.value) %>% 
+  mutate(Response = c("adj_Ohdg_TR","adj_Ohdg_TR","adj_Ohdg_TR","adj_Ohdg_TR","adj_Ohdg_TR",
+                      "adj_Mda1000_TR", "adj_Mda1000_TR", "adj_Mda1000_TR", "adj_Mda1000_TR","adj_Mda1000_TR",
+                      "adj_Isopgf2a1000_TR", "adj_Isopgf2a1000_TR", "adj_Isopgf2a1000_TR", "adj_Isopgf2a1000_TR","adj_Isopgf2a1000_TR",
+                      "adj_Ohdg_TR","adj_Ohdg_TR","adj_Ohdg_TR","adj_Ohdg_TR","adj_Ohdg_TR",
+                      "adj_Mda1000_TR", "adj_Mda1000_TR", "adj_Mda1000_TR", "adj_Mda1000_TR","adj_Mda1000_TR",
+                      "adj_Isopgf2a1000_TR", "adj_Isopgf2a1000_TR", "adj_Isopgf2a1000_TR", "adj_Isopgf2a1000_TR","adj_Isopgf2a1000_TR",
+                      "Ohdg_TR","Ohdg_TR","Ohdg_TR","Ohdg_TR","Ohdg_TR","Ohdg_TR",
+                      "Mda1000_TR","Mda1000_TR","Mda1000_TR","Mda1000_TR","Mda1000_TR","Mda1000_TR",
+                      "Isopgf2a1000_TR","Isopgf2a1000_TR","Isopgf2a1000_TR","Isopgf2a1000_TR","Isopgf2a1000_TR","Isopgf2a1000_TR",
+                      "Ohdg_TR","Ohdg_TR","Ohdg_TR","Ohdg_TR","Ohdg_TR","Ohdg_TR",
+                      "Mda1000_TR","Mda1000_TR","Mda1000_TR","Mda1000_TR","Mda1000_TR","Mda1000_TR",
+                      "Isopgf2a1000_TR","Isopgf2a1000_TR","Isopgf2a1000_TR","Isopgf2a1000_TR","Isopgf2a1000_TR","Isopgf2a1000_TR"
+                      ),.before=term) %>%  
+  arrange(p.adjust) %>%
+  select(!group) %>% 
+  kable()
+
+ggplot(model_data_log_centered, aes(Ohdg_TR ,Cd1000_TR)) +  
+  geom_point(na.rm = TRUE) +
+  geom_smooth(formula = y ~ x,method = "lm", se = FALSE)
+
+ggplot(model_data_log_centered, aes(Ohdg_TR ,Pb1000_TR)) +  
+  geom_point(na.rm = TRUE) +
+  geom_smooth(formula = y ~ x,method = "lm", se = FALSE)
+
+ggplot(model_data_log_centered, aes(Mda1000_TR ,Cd1000_TR)) +  
+  geom_point(na.rm = TRUE) +
+  geom_smooth(formula = y ~ x,method = "lm", se = FALSE)
+
+ggplot(model_data_log_centered, aes(Mda1000_TR ,Pb1000_TR)) +  
+  geom_point(na.rm = TRUE) +
+  geom_smooth(formula = y ~ x,method = "lm", se = FALSE)
+
+ggplot(model_data_log_centered, aes(Isopgf2a1000_TR ,Cd1000_TR)) +  
+  geom_point(na.rm = TRUE) +
+  geom_smooth(formula = y ~ x,method = "lm", se = FALSE)
+
+ggplot(model_data_log_centered, aes(Isopgf2a1000_TR ,Pb1000_TR)) +  
+  geom_point(na.rm = TRUE) +
+  geom_smooth(formula = y ~ x,method = "lm", se = FALSE)
+```
+
+
+```{r session, include=FALSE}
+# Session information
+sessionInfo()
+```

@@ -1,0 +1,296 @@
+============================
+Report:  Export Report
+Created: 25/05/2017 12:30:20
+============================
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+File 1: U:\Water and Health Laboratory\ORGANIKO\C3 - Children's Health Study\Main study\Digitization of questionnaires, diary\ffq digitiz\final\ffq_digitization-main study_KN_250517.epx 
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+File 1: U:\Water and Health Laboratory\ORGANIKO\C3 - Children's Health Study\Main study\Digitization of questionnaires, diary\ffq digitiz\final\ffq_digitization-main study_KN_250517.epx
+-------------------------------
+Title       Untitled Project    
+Created     04/07/2016 16:01:39 
+Last Edited 25/05/2017 12:23:54 
+Version     1                   
+Cycle       28                  
+-------------------------------
+Backup on shutdown: yes
+Project Encryption: none
+
+Dataforms:
+-------------------------------------------------------------------------------------------------------
+Caption    Created             Structure Edited    Data Edited         Sections Fields Records Deleted  
+-------------------------------------------------------------------------------------------------------
+Dataform 1 04/07/2016 16:01:39 25/05/2017 12:23:54 25/05/2017 12:23:54        1    201      33       0  
+-------------------------------------------------------------------------------------------------------
+
+------------------------
+Caption    Fields in key 
+------------------------
+Dataform 1               
+------------------------
+
+Specifications for Export:
+------------------------------------------
+Option                             Value   
+------------------------------------------
+Encoding                              UTF8 
+Export records marked for deletion      No 
+Byte Order Mark                         No 
+Export Field Names (first row)         Yes 
+Quote Character                          " 
+Field Separator                          , 
+Date Separator                           - 
+Time Separator                           : 
+Decimal Separtor                         . 
+New Line Style                     Windows 
+Fixed Format                            No 
+------------------------------------------
+
+-------------------
+Exported Dataforms:
+-------------------
+Dataform 1
+
+====================
+Dataform: Dataform 1
+====================
+Exported observations: 1 - 33
+
+Exported Items:
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
+Name                                            Type       Length Missing Value(s) Value Label       Question / Caption                                         
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
+Notes                                           String         80                                    Notes                                                      
+Code                                            Integer         3                                    Code                                                       
+Date                                            Date (DMY)     10                                    Date                                                       
+Editor                                          Integer         1                  Editor            Editor                                                     
+Fullfatfreshmilk                                Integer         1                  _YesNo            Full fat fresh milk                                        
+Fullfatfreshmilkperweek                         Float           7                                    Full fat fresh milk per week                               
+lowfatfreshmilk                                 Integer         1                  _YesNo            Low fat fresh milk                                         
+Lowfatfreshmilkperweek                          Float           7                                    Low fat fresh milk per week                                
+Nofatfreshmilk                                  Integer         1                  _YesNo            No fat fresh milk                                          
+Nofatfreshmilkperweek                           Float           7                                    No fat fresh milk per week                                 
+Evaporefullfatmilk                              Integer         1                  _YesNo            Evapore full fat milk                                      
+Evaporefullfatmilkperweek                       Float           7                                    Evapore full fat milk per week                             
+Evaporelowfatmilk                               Integer         1                  _YesNo            Evapore low fat milk                                       
+Evaporelowfatmilkperweek                        Float           7                                    Evapore low fat milk per week                              
+Evaporenofatmilk                                Integer         1                  _YesNo            Evapore no fat milk                                        
+Evaporenofatmilkperweek                         Float           7                                    Evapore no fat milk per week                               
+Condensedmilk                                   Integer         1                  _YesNo            Condensed milk                                             
+Condensedmilkperweek                            Float           7                                    Condensed milk per week                                    
+Chocolatemilk                                   Integer         1                  _YesNo            Chocolate milk                                             
+Chocolatemilkperweek                            Float           7                                    Chocolate milk per week                                    
+Othermilk                                       Integer         1                  _YesNo            Other milk                                                 
+Othermilkname                                   String         15                                    Other milk                                                 
+Othermilkperweek                                Float           7                                    Other milk per week                                        
+Fullfatyogurt                                   Integer         1                  _YesNo            Full fat yogurt                                            
+Fullfatyogurtperweek                            Float           7                                    Full fat yogurt per week                                   
+Lowfatyogurt                                    Integer         1                  _YesNo            Low fat yogurt                                             
+Lowfatyogurtperweek                             Float           7                                    Low fat yogurt per week                                    
+Nofatyogurt                                     Integer         1                  _YesNo            No fat yogurt                                              
+Nofatyogurtperweek                              Float           7                                    No fat yogurt per week                                     
+Kefalotyrigravierakasericheddar                 Integer         1                  _YesNo            Kefalotyri, graviera, kaseri, cheddar                      
+Kefalotyrigravierakasericheddarperweek          Float           7                                    Kefalotyri, graviera, kaseri, cheddar per week             
+Fetahalloumifreshanariedam                      Integer         1                  _YesNo            Feta, halloumi, fresh anari, edam                          
+Fetahalloumifreshanariedamperweek               Float           7                                    Feta, halloumi, fresh anari, edam per week                 
+Softcheese                                      Integer         1                  _YesNo            Soft cheese (cottage, philadelphia, lavachequirit)         
+Softcheeseperweek                               Float           7                                    Soft cheese per week                                       
+cheeselowfat                                    Integer         1                  _cheeselowfatfreq is the cheese low fat                                      
+Eggs                                            Integer         1                  _YesNo            Eggs                                                       
+Eggsperweek                                     Float           7                                    Eggs per week                                              
+CornflakesRicecrispieslowinfiberscereals        Integer         1                  _YesNo            Cornflakes, Rice-crispies, low in fibers cereals           
+CornflakesRicecrispieslowinfiberscerealsperweek Float           7                                    Cornflakes, Rice-crispies, low in fibers cereals per week  
+AllbranFruitnfiberhighinfiberscereals           Integer         1                  _YesNo            All-bran, Fruit n fiber, high in fibers cereals            
+AllbranFruitnfiberhighinfiberscerealsperweek    Float           7                                    All bran, Fruit n fiber, high in fibers cereals per week   
+Chocolatesugarcerealscocopopsfrosties           Integer         1                  _YesNo            Chocolate, sugar cereals e.g. coco-pops, frosties          
+Chocolatesugarcerealsperweek                    Float           7                                    Chocolate, sugar cereals e.g. coco-pops, frosties per week 
+Whitebread                                      Integer         1                  _YesNo            White bread                                                
+Whitebreadperweek                               Float           7                                    White bread per week                                       
+Villagebreadkoulouri                            Integer         1                  _YesNo            Village bread/koulouri                                     
+Villagebreadkoulouriperweek                     Float           7                                    Village bread/koulouri per week                            
+Wholemealbreadblack                             Integer         1                  _YesNo            Wholemeal bread/black                                      
+Wholemealbreadblackperweek                      Float           7                                    Wholemeal bread/black per week                             
+Wholegrainbreadpolysporo                        Integer         1                  _YesNo            Whole grain bread/polysporo                                
+Wholegrainbreadperweek                          Float           7                                    Whole grain bread per week                                 
+Rice                                            Integer         1                  _YesNo            Rice                                                       
+Riceperweek                                     Float           7                                    Rice per week                                              
+Pligouripourgouri                               Integer         1                  _YesNo            Pligouri (pourgouri)                                       
+Pligouripourgouriperweek                        Float           7                                    Pligouri/pourgouri per week                                
+Trahanas                                        Integer         1                  _YesNo            Trahanas                                                   
+Trahanasperweek                                 Float           7                                    Trahanas per week                                          
+Pastakritharaki                                 Integer         1                  _YesNo            Pasta, kritharaki                                          
+Pastakritharakiperweek                          Float           7                                    Pasta, kritharaki per week                                 
+Stuffedpasta                                    Integer         1                  _YesNo            Stuffed pasta e.g. ravioles, tortellini                    
+Stuffedpastaperweek                             Float           7                                    Stuffed pasta per week                                     
+Ovenpasta                                       Integer         1                  _YesNo            Oven pasta                                                 
+Ovenpastaperweek                                Float           7                                    Oven pasta per week                                        
+Friedpotatoes                                   Integer         1                  _YesNo            Fried potatoes                                             
+Friedpotatoesperweek                            Float           7                                    Fried potatoes per week                                    
+Boiledpotatoes                                  Integer         1                  _YesNo            Boiled potatoes                                            
+Boiledpotatoesperweek                           Float           7                                    Boiled potatoes per week                                   
+Ovenpotatoes                                    Integer         1                  _YesNo            Oven potatoes                                              
+Ovenpotatoesperweek                             Float           7                                    Oven potatoes per week                                     
+Mashedpotatoes                                  Integer         1                  _YesNo            Mashed potatoes                                            
+Mashedpotatoesperweek                           Float           7                                    Mashed potatoes per week                                   
+Legumes                                         Integer         1                  _YesNo            Legumes e.g. lentils, beans                                
+Legumesperweek                                  Float           7                                    Legumes per week                                           
+MeatormincedmeatPork                            Integer         1                  _YesNo            Meat or minced meat: Pork                                  
+Porkmeatperweek                                 Float           7                                    Pork meat per week                                         
+MeatSheepgoat                                   Integer         1                  _YesNo            Meat: Sheep/goat                                           
+Sheepgoatmeatperweek                            Float           7                                    Sheep/goat meat per week                                   
+MeatormincedmeatBeef                            Integer         1                  _YesNo            Meat or minced meat: Beef                                  
+Cowmeatperweek                                  Float           7                                    Cow meat per week                                          
+Chickenorrabbit                                 Integer         1                  _YesNo            Chicken or rabbit                                          
+Chickenrabbitperweek                            Float           7                                    Chicken/rabbit per week                                    
+Liver                                           Integer         1                  _YesNo            Liver                                                      
+Liverperweek                                    Float           7                                    Liver per week                                             
+Salamibaconmourtatella                          Integer         1                  _YesNo            Salami, bacon, mourtatella                                 
+Salamibaconmourtatellaperweek                   Float           7                                    Salami, bacon, mourtatella per week                        
+Lountzaham                                      Integer         1                  _YesNo            Lountza, ham                                               
+Lountzahamperweek                               Float           7                                    Lountza, ham per week                                      
+Sausages                                        Integer         1                  _YesNo            Sausages                                                   
+Sausagesperweek                                 Float           7                                    Sausages per week                                          
+Cannedmeat                                      Integer         1                  _YesNo            Canned meat                                                
+Cannedmeatperweek                               Float           7                                    Canned meat per week                                       
+Cannedfish                                      Integer         1                  _YesNo            Canned fish                                                
+Cannedfishperweek                               Float           7                                    Canned fish per week                                       
+Freshorfrozenfishseafood                        Integer         1                  _YesNo            Fresh or frozen fish, seafood                              
+Fishperweek                                     Float           7                                    Fresh or frozen fish, seafood per week                     
+Rawvegetablessalad                              Integer         1                  _YesNo            Raw vegetables, salad                                      
+Rawvegetablessaladperweek                       Float           7                                    Raw vegetables, salad per week                             
+Cookedvegetables                                Integer         1                  _YesNo            Cooked vegetables                                          
+Cookedvegetablesperweek                         Float           7                                    Cooked vegetables per week                                 
+Freshfruits                                     Integer         1                  _YesNo            Fresh fruits                                               
+Freshfruitsperweek                              Float           7                                    Fresh fruits per week                                      
+Juicesfromfruitsvegetables                      Integer         1                  _YesNo            Juices from fruits, vegetables                             
+Juicesfromfruitsvegetablesperweek               Float           7                                    Juices from fruits vegetables per week                     
+Oliveoil                                        Integer         1                  _YesNo            Olive oil                                                  
+Oliveoilperweek                                 Float           7                                    Olive oil per week                                         
+Vegetablesunfloweroil                           Integer         1                  _YesNo            Vegetable, sunflower oil                                   
+Vegetablesunfloweroilperweek                    Float           7                                    Vegetable, sunflower oil per week                          
+Margarine                                       Integer         1                  _YesNo            Margarine                                                  
+Margarineperweek                                Float           7                                    Margarine per week                                         
+Lowfatmargarine                                 Integer         1                  _YesNo            Low fat margarine eg Flora light/Vitalite                  
+Lowfatmargarineperweek                          Float           7                                    Low fat margarine per week                                 
+Butter                                          Integer         1                  _YesNo            Butter                                                     
+Butterperweek                                   Float           7                                    Butter per week                                            
+Mayonnaise                                      Integer         1                  _YesNo            Mayonnaise                                                 
+Mayonnaiseperweek                               Float           7                                    Mayonnaise per week                                        
+Olives                                          Integer         1                  _YesNo            Olives                                                     
+Olivesperweek                                   Float           7                                    Olives per week                                            
+Sugar                                           Integer         1                  _YesNo            Sugar                                                      
+Sugarperweek                                    Float           7                                    Sugar per week                                             
+Honey                                           Integer         1                  _YesNo            Honey                                                      
+Honeyperweek                                    Float           7                                    Honey per week                                             
+Marmeladespoonsweets                            Integer         1                  _YesNo            Marmelade & spoon sweets                                   
+Marmeladespoonsweetsperweek                     Float           7                                    Marmelade, spoon sweets per week                           
+Fruitscomposts                                  Integer         1                  _YesNo            Fruits composts                                            
+Fruitscompostsperweek                           Float           7                                    Fruits composts per week                                   
+Merentaegnutella                                Integer         1                  _YesNo            Merenta eg nutella                                         
+Merentaperweek                                  Float           7                                    Merenta per week                                           
+Chocolates                                      Integer         1                  _YesNo            Chocolates                                                 
+Chocolatesnames                                 String         18                                    Chocolates name                                            
+Chocolatesperweek                               Float           7                                    Chocolates per week                                        
+Wafersgkofretes                                 Integer         1                  _YesNo            Wafers (gkofretes)                                         
+Gkofretesperweek                                Float           7                                    Gkofretes per week                                         
+Cookiesbiscuits                                 Integer         1                  _YesNo            Cookies, biscuits                                          
+Cookiesbiscuitsperweek                          Float           7                                    Cookies, biscuits per week                                 
+Icecreams                                       Integer         1                  _YesNo            Ice creams                                                 
+Icecreamsperweek                                Float           7                                    Ice creams per week                                        
+Creams                                          Integer         1                  _YesNo            Creams (eg mous, karamele)                                 
+Creamsperweek                                   Float           7                                    Creams per week                                            
+Cakestartssweets                                Integer         1                  _YesNo            Cakes, tarts, sweets                                       
+Cakestartssweetsperweek                         Float           7                                    Cakes, tarts, sweets per week                              
+Cheesepiesbourekiasouffle                       Integer         1                  _YesNo            Cheese pies, bourekia, souffle                             
+Cheesepiesbourekiasouffleperweek                Float           7                                    Cheese pies, bourekia, souffle per week                    
+Sausagepieschickenpies                          Integer         1                  _YesNo            Sausage pies, chicken pies                                 
+Sausagepieschickenpiesperweek                   Float           7                                    Sausage pies, chicken pies per week                        
+Tahinipiesolivepies                             Integer         1                  _YesNo            Tahini pies, olive pies                                    
+Tahinipiesolivepiesperweek                      Float           7                                    Tahini pies, olive pies per week                           
+Croissantsdonuts                                Integer         1                  _YesNo            Croissants, donuts                                         
+Croissantsdonutsperweek                         Float           7                                    Croissants, donuts per week                                
+Sandwichcheeseorhalloumi                        Integer         1                  _YesNo            Sandwich cheese or halloumi                                
+Sandwichcheeseorhalloumiperweek                 Float           7                                    Sandwich cheese or halloumi per week                       
+Sandwichhamorlountzaorturkey                    Integer         1                  _YesNo            Sandwich ham or lountza or turkey                          
+Sandwichhamorlountzaorturkeyperweek             Float           7                                    Sandwich ham or lountza or turkey per week                 
+Sandwichhamcheeselountzahalloumi                Integer         1                  _YesNo            Sandwich ham-cheese, lountza-halloumi                      
+Sandwichhamcheeselountzahalloumiperweek         Float           7                                    Sandwich ham-cheese, lountza-halloumi per week             
+Sandwichtuna                                    Integer         1                  _YesNo            Sandwich tuna                                              
+Sandwichtunaperweek                             Float           7                                    Sandwich tuna per week                                     
+Pizza                                           Integer         1                  _YesNo            Pizza                                                      
+Pizzaperweek                                    Float           7                                    Pizza per week                                             
+Fastfoodmeals                                   Integer         1                  _YesNo            Fast-food meals                                            
+Fastfoodmealsperweek                            Float           7                                    Fast food meals per week                                   
+Mousakas                                        Integer         1                  _YesNo            Mousakas                                                   
+Mousakasperweek                                 Float           7                                    Mousakas per week                                          
+Stuffedvineleavesntolmades                      Integer         1                  _YesNo            Stuffed vine leaves (ntolmades)                            
+Stuffedvineleavesperweek                        Float           7                                    Stuffed vine leaves per week                               
+Crispschipspopcorn                              Integer         1                  _YesNo            Crisps, chips, pop corn                                    
+Crispschipspopcornperweek                       Float           7                                    Crisps, chips, pop corn per week                           
+Nuts                                            Integer         1                  _YesNo            Nuts                                                       
+Nutsperweek                                     Float           7                                    Nuts per week                                              
+Water                                           Integer         1                  _YesNo            Water                                                      
+Waterperweek                                    Float           7                                    Water per week                                             
+Softdrinkswithsugar                             Integer         1                  _YesNo            Soft drinks with sugar                                     
+Softdrinkswithsugarperweek                      Float           7                                    Soft drinks with sugar per week                            
+Softdrinkswithoutsugar                          Integer         1                  _YesNo            Soft drinks without sugar                                  
+Softdrinkswithoutsugarperweek                   Float           7                                    Soft drinks without sugar per week                         
+Concentratedjuices                              Integer         1                  _YesNo            Concentrated juices                                        
+Concentratedjuicesperweek                       Float           7                                    Concentrated juices per week                               
+FruitdrinksegKeanita                            Integer         1                  _YesNo            Fruit drinks eg Keanita                                    
+Fruitdrinksperweek                              Float           7                                    Fruit drinks per week                                      
+Isotonicdrinks                                  Integer         1                  _YesNo            Isotonic drinks                                            
+Isotonicdrinksperweek                           Float           7                                    Isotonic drinks per week                                   
+Energydrinks                                    Integer         1                  _YesNo            Energy drinks                                              
+Energydrinksperweek                             Float           7                                    Energy drinks per week                                     
+Vitamins                                        Integer         1                  _YesNo            Vitamins                                                   
+Vitaminsname                                    String         20                                    Vitamins                                                   
+Vitaminsperweek                                 Float           7                                    Vitamins per week                                          
+Othersupplements                                Integer         1                  _YesNo            Other supplements                                          
+Othersupplementsname                            String         15                                    Other supplements                                          
+Othersupplementsperweek                         Float           7                                    Other supplements per week                                 
+Otherfood1                                      Integer         1                  _YesNo            Other food 1                                               
+Otherfood1name                                  String         15                                    Other food 1                                               
+Otherfood1perweek                               Float           7                                    Other food 1 per week                                      
+Otherfood2                                      Integer         1                  _YesNo            Other food 2                                               
+Otherfood2name                                  String         15                                    Other food 2                                               
+Otherfood2perweek                               Float           7                                    Other food 2 per week                                      
+Otherfood3                                      Integer         1                  _YesNo            Other food 3                                               
+Otherfood3name                                  String         15                                    Other food 3                                               
+Otherfood3perweek                               Float           7                                    Other food 3 per week                                      
+Otherfood4                                      Integer         1                  _YesNo            Other food 4                                               
+Otherfood4name                                  String         15                                    Other food 4                                               
+Otherfood4perweek                               Float           7                                    Other food 4 per week                                      
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Files created:
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Content: Filename:                                                                                                                                                                         
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Report   U:\Water and Health Laboratory\ORGANIKO\C3 - Children's Health Study\Main study\Digitization of questionnaires, diary\ffq digitiz\final\ffq_digitization-main study_KN_250517.log 
+csv      U:\Water and Health Laboratory\ORGANIKO\C3 - Children's Health Study\Main study\Digitization of questionnaires, diary\ffq digitiz\final\ffq_digitization-main study_KN_250517.csv 
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Study information:
+-----------------------------------------
+Name:                 Value:              
+-----------------------------------------
+Title                 Untitled Project    
+Purpose                                   
+Geographical Coverage                     
+Data Collection                           
+Author                                    
+Created               04/07/2016 16:01:39 
+Last Edited           04/07/2016 16:01:39 
+Version                                 1 
+Funding                                   
+Identifier                                
+Language              en                  
+Publisher                                 
+Rights                                    
+Abstract                                  
+Design                                    
+Unit of Observation                       
+-----------------------------------------
